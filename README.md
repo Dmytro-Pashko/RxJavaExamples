@@ -4,7 +4,7 @@ My samples of using RxJava2 during study Reactive Programming based on book:
  **"Reactive Programming with RxJava Creating Asynchronous, Event-Based Applications"**
 by Ben Christensen, Tomasz Nurkiewicz.
 
-![](https://)
+![](https://raw.githubusercontent.com/goodvin1709/RxJavaExamples/master/images/logo.jpg)
 
 > “This book is a deep dive into the concepts and uses of RxJava in particular, and reactive
 programming in general, by authors who have countless hours of experience
