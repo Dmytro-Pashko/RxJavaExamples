@@ -10,10 +10,14 @@ import java.math.BigInteger;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
-class Application {
+/**
+ * The first chapter of the book "Reactive Programming with RxJava"
+ * Samples implemented using RxJava2.
+ */
 
+class Chapter1 {
 
-    Application() {
+    Chapter1() {
 //        observableExample();
 //        singleExample();
 //        timerExample(5);
@@ -22,28 +26,16 @@ class Application {
 //        fewSubscribers();
 //        cachingHttpRequestExample();
 //        infinityStreamExample();
-        testCallable();
-    }
-
-    private void singleExample() {
-        System.out.println("Start " + Thread.currentThread());
-        Single.create(emitter -> {
-            try {
-                long waitTime = new Random().nextInt(5) * 1000;
-                Thread.sleep(waitTime);
-                emitter.onSuccess(String.format("Rrequest completed [%d ms] %s...", waitTime, Thread.currentThread()));
-            } catch (InterruptedException e) {
-                emitter.onError(e);
-            }
-        }).subscribe(System.out::println);
-        System.out.println("Finish " + Thread.currentThread());
+//        testCallable();
+//        timerExample();
+//        intervalExample();
     }
 
     private void observableExample() {
-        System.out.println("Start " + Thread.currentThread());
+        Logger.log("Started.");
         Observable<String> collector = Observable.merge(getAsyncRequest("A"), getAsyncRequest("B"));
         collector.subscribe(System.out::println);
-        System.out.println("Finish " + Thread.currentThread());
+        Logger.log("Finished");
     }
 
     private Observable<String> getAsyncRequest(String name) {
@@ -59,11 +51,25 @@ class Application {
         }).map(v -> (String) v);
     }
 
+    private void singleExample() {
+        Logger.log("Started.");
+        Single.create(emitter -> {
+            try {
+                long waitTime = new Random().nextInt(5) * 1000;
+                Thread.sleep(waitTime);
+                emitter.onSuccess(String.format("Rrequest completed [%d ms] %s...", waitTime, Thread.currentThread()));
+            } catch (InterruptedException e) {
+                emitter.onError(e);
+            }
+        }).subscribe(System.out::println);
+        Logger.log("Finished.");
+    }
+
     private void timerExample(int ticks) {
         Observable.range(1, ticks)
                 .zipWith(Observable.interval(1, TimeUnit.SECONDS), (io.reactivex.functions.BiFunction<Integer, Long, Object>) (integer, aLong) -> integer)
                 .observeOn(Schedulers.io())
-                .blockingNext().forEach(System.out::println);
+                .blockingNext().forEach(tick -> Logger.log("%d",tick));
     }
 
     private void testNever() {
@@ -110,7 +116,7 @@ class Application {
 
     private void fewSubscribers() {
         Observable<Integer> observable = Observable.create(emitter -> {
-            Logger.log("Create");
+            Logger.log("Creating");
             emitter.onNext(42);
             emitter.onComplete();
         });
@@ -131,10 +137,10 @@ class Application {
         }).cache().cast(String.class);
         long start = System.currentTimeMillis();
         networkCall.subscribe();
-        Logger.log("First request takes %d ms", System.currentTimeMillis() - start);
+        Logger.log("First request takes %d ms.", System.currentTimeMillis() - start);
         start = System.currentTimeMillis();
         networkCall.subscribe();
-        Logger.log("Second request takes %d ms", System.currentTimeMillis() - start);
+        Logger.log("Second request takes %d ms.", System.currentTimeMillis() - start);
     }
 
 
@@ -177,5 +183,20 @@ class Application {
         start = System.currentTimeMillis();
         networkCall.subscribe();
         Logger.log("Second request takes %d ms", System.currentTimeMillis() - start);
+    }
+
+    private void timerExample() {
+        Logger.log("Timer started.");
+        Observable.timer(1, TimeUnit.SECONDS)
+                .blockingSubscribe((zero) -> Logger.log("%d", zero));
+        Logger.log("Timer stopped.");
+    }
+
+
+    private void intervalExample() {
+        Logger.log("Interval timer started.");
+        Observable.interval(1_000_000/60, TimeUnit.MICROSECONDS)
+                .blockingSubscribe((i) -> Logger.log("%d", i));
+        Logger.log("Interval  stopped.");
     }
 }
