@@ -1,5 +1,6 @@
 import io.reactivex.Observable;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.observables.ConnectableObservable;
 import io.reactivex.subjects.AsyncSubject;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
@@ -12,7 +13,9 @@ class Chapter2 {
 //        exampleOuterAPI();
 //        publishSubjectExample();
 //        asyncSubjectExample();
-        replySubjectExample();
+//        replySubjectExample();
+//        refCountExample();
+        publishExample();
     }
 
     private void exampleOuterAPI() {
@@ -75,7 +78,6 @@ class Chapter2 {
             subject.onComplete();
         });
     }
-
 
     /**
      * Waiting for generation number above that 95 and will be emitted.
@@ -144,5 +146,63 @@ class Chapter2 {
             subject.onComplete();
         });
 
+    }
+
+    /**
+     * Creating API object when disposable will be subscribed.
+     * RefCount check count of subscribers and then when subscribers count changed from 0
+     * will be subscribing to observable. Subscribers count other than 1 will be ignored.
+     * The same to *.share()
+     */
+    private void refCountExample() {
+        Observable<Integer> observable = Observable.create(emitter -> {
+            OutAPI outAPI = new OutAPI();
+            outAPI.addListener(data -> {
+                if (!emitter.isDisposed()) {
+                    emitter.onNext(data);
+                } else {
+                    outAPI.shutdown();
+                }
+            });
+        }).publish().refCount().map(e -> (Integer) e);
+
+        Disposable disposableA = observable.subscribe(d -> Logger.log("A %d", d));
+        Logger.log("Subscribed A.");
+        Disposable disposableB = observable.subscribe(d -> Logger.log("B %d", d));
+        Logger.log("Subscribed B.");
+        Observable.timer(2, TimeUnit.SECONDS).subscribe(b -> {
+            disposableA.dispose();
+            Logger.log("Removed subscriber A.");
+        });
+
+        Observable.timer(4, TimeUnit.SECONDS).subscribe(c -> {
+            disposableB.dispose();
+            Logger.log("Removed subscriber B.");
+        });
+    }
+
+    private void publishExample() {
+        ConnectableObservable<Integer> observable = Observable.create(emitter -> {
+            OutAPI outAPI = new OutAPI();
+            outAPI.addListener(data -> {
+                if (!emitter.isDisposed()) {
+                    emitter.onNext(data);
+                } else {
+                    outAPI.shutdown();
+                }
+            });
+        }).map(e -> (Integer) e).publish();
+
+        Observable.timer(2, TimeUnit.SECONDS).subscribe(c -> {
+            Logger.log("A subscribed.");
+                observable.subscribe(e -> Logger.log("A %d.", e));
+
+        });
+
+        Observable.timer(4, TimeUnit.SECONDS).subscribe(c -> {
+            Logger.log("B subscribed.");
+            observable.subscribe(e -> Logger.log("B %d.", e));
+        });
+        observable.connect();
     }
 }
