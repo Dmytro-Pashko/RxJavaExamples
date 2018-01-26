@@ -104,11 +104,11 @@ class Chapter3 {
      * Holy f**king shit :)
      */
     private void zipExample() {
-        String[] values = {"Goodvin1709","Java","RxJava"};
+        String[] values = {"Goodvin1709", "Java", "RxJava"};
 
         Observable.zip(Observable.fromArray(values),
                 Observable.fromArray(values).flatMap(val -> getHash(val).toObservable()),
-                (BiFunction<String, String, Object>) (s, s2) -> String.format("value[%s] - hash[%s]",s,s2))
-                .subscribe(v -> Logger.log("%s",v));
+                (s, s2) -> String.format("value[%s] - hash[%s]", s, s2))
+                .subscribe(v -> Logger.log("%s", v));
     }
 }
