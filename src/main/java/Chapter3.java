@@ -38,7 +38,8 @@ class Chapter3 {
 //        firstLastExample();
 //        takeUntilExample();
 //        takeWhileExample();
-        elementAtExample();
+//        elementAtExample();
+        merge2Example();
     }
 
     private void filterExample() {
@@ -238,21 +239,50 @@ class Chapter3 {
 
     }
 
-    private void takeUntilExample(){
+    private void takeUntilExample() {
         source().takeUntil(v -> v == 128)
                 .subscribe(v -> Logger.log("%d", v));
     }
 
-    private void takeWhileExample(){
+    private void takeWhileExample() {
         source().takeWhile(v -> v < 80)
                 .subscribe(v -> Logger.log("%d", v));
     }
 
-    private void elementAtExample(){
+    private void elementAtExample() {
         List<Integer> ids = Arrays.asList(1, 3, 57, 62, 33, 24);
         Observable.fromIterable(ids)
                 .elementAt(2)
-                .subscribe(id -> Logger.log("%d",id));
+                .subscribe(id -> Logger.log("%d", id));
+    }
+
+    private void merge2Example() {
+        String quote1 = "Anything less than immortality is a complete waste of time.";
+        String quote2 = "Listen to many, speak to a few.";
+        String quote3 = "My words fly up, my thoughts remain below: Words without thoughts never to heaven go.";
+
+//        Observable.merge(speak(quote1, 70), speak(quote2, 80), speak(quote3, 100))
+//                .blockingSubscribe(word -> Logger.log("%s",word));
+
+        Observable.concat(speak(quote1, 70), speak(quote2, 80), speak(quote3, 100))
+                .blockingSubscribe(word -> Logger.log("%s",word));
+
+    }
+
+    private Observable<String> speak(String quote, long msPerChar) {
+        String[] tokens = quote.replaceAll("[:,]", "").split(" ");
+        Observable<String> words = Observable.fromArray(tokens);
+        Observable<Long> wordDelay = words
+                .map(String::length)
+                .map(length -> length * msPerChar)
+                .scan((total, current) -> total + current);
+        return words.zipWith(wordDelay.startWith(0L), Pair::of)
+                .flatMap(this::just);
+    }
+
+    private Observable<String> just(Pair pair) {
+        return Observable.just((String) pair.getLeft())
+                .delay((long) pair.getRight(), TimeUnit.MILLISECONDS);
     }
 
 }
