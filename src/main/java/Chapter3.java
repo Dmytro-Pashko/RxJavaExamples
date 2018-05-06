@@ -1,5 +1,3 @@
-import com.sun.javafx.scene.control.skin.VirtualFlow;
-import com.sun.media.sound.InvalidFormatException;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
 import io.reactivex.Scheduler;
@@ -8,7 +6,6 @@ import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiFunction;
 import io.reactivex.schedulers.Schedulers;
 import org.jsoup.Jsoup;
-import sun.management.counter.Units;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
@@ -115,7 +112,7 @@ class Chapter3 {
                         .toString();
                 emitter.onSuccess(result);
             } else {
-                emitter.onError(new InvalidFormatException("Invalid input value."));
+                emitter.onError(new Exception("Invalid input value."));
             }
         });
     }
