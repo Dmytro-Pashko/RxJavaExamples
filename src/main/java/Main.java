@@ -4,6 +4,7 @@ public class Main {
 //        new Chapter1();
 //        new Chapter2();
 //        new Chapter3();
-        new Chapter4_1();
+//        new Chapter4_1();
+        new Chapter4_2();
     }
 }

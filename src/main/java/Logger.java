@@ -10,6 +10,10 @@ public class Logger {
     }
 
     public static void log(String msg, Object... params) {
-        System.out.println(String.format(Locale.ENGLISH, "Thread["+Thread.currentThread().getName()+"]:"+msg, params));
+        System.out.println(String.format(Locale.ENGLISH, "Thread[" + Thread.currentThread().getName() + "]:" + msg, params));
+    }
+
+    public static void log(String msg) {
+        System.out.println("Thread[" + Thread.currentThread().getName() + "]:" + msg);
     }
 }

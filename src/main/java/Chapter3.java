@@ -262,7 +262,7 @@ class Chapter3 {
 //                .blockingSubscribe(word -> Logger.log("%s",word));
 
         Observable.concat(speak(quote1, 70), speak(quote2, 80), speak(quote3, 100))
-                .blockingSubscribe(word -> Logger.log("%s",word));
+                .blockingSubscribe(word -> Logger.log("%s", word));
 
     }
 
@@ -273,13 +273,20 @@ class Chapter3 {
                 .map(String::length)
                 .map(length -> length * msPerChar)
                 .scan((total, current) -> total + current);
-        return words.zipWith(wordDelay.startWith(0L), Pair::of)
-                .flatMap(this::just);
+
+//        return words.zipWith(wordDelay.startWith(0L), Pair::of)
+//                .flatMap(this::just);
+
+        return words.zipWith(wordDelay.startWith(0L), this::just)
+                .flatMap(o -> o);
     }
 
-    private Observable<String> just(Pair pair) {
-        return Observable.just((String) pair.getLeft())
-                .delay((long) pair.getRight(), TimeUnit.MILLISECONDS);
-    }
+//    private Observable<String> just(Pair pair) {
+//        return Observable.just((String) pair.getLeft())
+//                .delay((long) pair.getRight(), TimeUnit.MILLISECONDS);
+//    }
 
+    private Observable<String> just(String word, Long time) {
+        return Observable.just(word).delay(time, TimeUnit.MILLISECONDS);
+    }
 }
