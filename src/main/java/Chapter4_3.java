@@ -1,8 +1,8 @@
+import io.reactivex.Observable;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -10,14 +10,12 @@ import java.util.stream.IntStream;
 
 class Chapter4_3 {
 
-    Chapter4_3() {
+    Chapter4_3() throws Exception {
 //        publishSubjectExample();
 //        bufferingPublishSubjectExample();
-        try {
-            schedulerExample();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+//        schedulerExample();
+//        ioExample();
+        computationExample();
     }
 
     /**
@@ -72,4 +70,48 @@ class Chapter4_3 {
         }
     }
 
+    /**
+     * This Scheduler better for asynchronously performing blocking IO.
+     * Worker instances must be disposed manually.
+     */
+    private void ioExample() {
+        List<Runnable> taskList = IntStream.range(0, 25)
+                .mapToObj(this::getTask)
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < taskList.size(); i++) {
+            Schedulers.io().scheduleDirect(taskList.get(i));
+            Logger.log("%d Scheduled.", i);
+        }
+        Observable.just(1).delay(7, TimeUnit.SECONDS)
+                .blockingSubscribe();
+    }
+
+    /**
+     * Create active thread count equals to number of processors.
+     * This type of Scheduler(Executor) better to handle computation work, and handling callbacks.
+     */
+    private void computationExample() {
+        List<Runnable> taskList = IntStream.range(0, 25)
+                .mapToObj(this::getTask)
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < taskList.size(); i++) {
+            Schedulers.computation().scheduleDirect(taskList.get(i));
+            Logger.log("%d Scheduled.", i);
+        }
+        Observable.just(1).delay(7, TimeUnit.SECONDS)
+                .blockingSubscribe();
+    }
+
+    private Runnable getTask(int number) {
+        return () -> {
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            Logger.log("%d Destroyed.", number);
+        };
+    }
 }

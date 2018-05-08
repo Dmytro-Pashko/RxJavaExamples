@@ -1,6 +1,6 @@
 public class Main {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
 //        new Chapter1();
 //        new Chapter2();
 //        new Chapter3();
