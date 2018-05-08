@@ -1,4 +1,5 @@
 import io.reactivex.Observable;
+import io.reactivex.Scheduler;
 import io.reactivex.schedulers.Schedulers;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.ReplaySubject;
@@ -75,15 +76,8 @@ class Chapter4_3 {
      * Worker instances must be disposed manually.
      */
     private void ioExample() {
-        List<Runnable> taskList = IntStream.range(0, 25)
-                .mapToObj(this::getTask)
-                .collect(Collectors.toList());
-
-        for (int i = 0; i < taskList.size(); i++) {
-            Schedulers.io().scheduleDirect(taskList.get(i));
-            Logger.log("%d Scheduled.", i);
-        }
-        Observable.just(1).delay(7, TimeUnit.SECONDS)
+        executeTasks(getTaskList(20), Schedulers.io());
+        Observable.just(1).delay(10, TimeUnit.SECONDS)
                 .blockingSubscribe();
     }
 
@@ -92,16 +86,22 @@ class Chapter4_3 {
      * This type of Scheduler(Executor) better to handle computation work, and handling callbacks.
      */
     private void computationExample() {
-        List<Runnable> taskList = IntStream.range(0, 25)
-                .mapToObj(this::getTask)
-                .collect(Collectors.toList());
+        executeTasks(getTaskList(20), Schedulers.computation());
+        Observable.just(1).delay(10, TimeUnit.SECONDS)
+                .blockingSubscribe();
+    }
 
-        for (int i = 0; i < taskList.size(); i++) {
-            Schedulers.computation().scheduleDirect(taskList.get(i));
+    private void executeTasks(final List<Runnable> tasks, final Scheduler scheduler) {
+        for (int i = 0; i < tasks.size(); i++) {
+            scheduler.scheduleDirect(tasks.get(i));
             Logger.log("%d Scheduled.", i);
         }
-        Observable.just(1).delay(7, TimeUnit.SECONDS)
-                .blockingSubscribe();
+    }
+
+    private List<Runnable> getTaskList(int count) {
+        return IntStream.range(0, count)
+                .mapToObj(this::getTask)
+                .collect(Collectors.toList());
     }
 
     private Runnable getTask(int number) {
